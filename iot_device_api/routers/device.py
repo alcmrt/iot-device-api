@@ -1,12 +1,12 @@
 from datetime import datetime
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from iot_device_api.models.device import Device, DeviceIn
 
 
 router = APIRouter()
 device_table = []
 
-@router.post("/devices", response_model=Device)
+@router.post("/devices", response_model=Device, status_code=201)
 async def create_device(post: DeviceIn):
     data = post.model_dump()
     last_record_id = len(device_table)
@@ -21,14 +21,16 @@ async def create_device(post: DeviceIn):
     return new_device
 
 
-@router.get("/devices", response_model=list[Device])
+@router.get("/devices", response_model=list[Device], status_code=200)
 async def get_all_devices():
     return device_table
 
 
 
-@router.get("/devices/{id}", response_model=Device)
+@router.get("/devices/{id}", response_model=Device, status_code=200)
 async def get_device(id: int):
     for device in device_table:
         if device["id"] == id:
             return device
+    
+    raise HTTPException(status_code=404, detail="Device not found.")
