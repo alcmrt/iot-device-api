@@ -2,6 +2,7 @@
 Contains device pydantic models.
 """
 
+from datetime import datetime
 from pydantic import BaseModel
 
 
@@ -12,6 +13,8 @@ class DeviceIn(BaseModel):
     status: str
     latitude: int
     longitude: int
+    createTime: datetime | None = None
+    updateTime: datetime | None = None
 
 
 class Device(DeviceIn):
