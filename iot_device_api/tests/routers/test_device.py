@@ -41,7 +41,7 @@ async def test_create_device(async_client: AsyncClient):
     response = await async_client.post("/devices", json=device)
     
     assert response.status_code == 201
-    assert {"id": 0, "name": "test device"}.items() <= response.json().items()
+    assert {"id": 1, "name": "test device"}.items() <= response.json().items()
 
 
 

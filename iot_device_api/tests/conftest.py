@@ -2,14 +2,18 @@
 Configuration for our tests.
 """
 
+import os
 from typing import AsyncGenerator, Generator
 import pytest
 
 from fastapi.testclient import TestClient
 from httpx import AsyncClient
 
+
+os.environ["ENV_STATE"] = "test"
+
+from iot_device_api.database import database
 from iot_device_api.main import app
-from iot_device_api.routers.device import device_table
 
 
 @pytest.fixture(scope="session")
@@ -25,8 +29,9 @@ def client() -> Generator:
 
 @pytest.fixture(autouse=True)
 async def db() -> AsyncGenerator:
-    device_table.clear()
+    await database.connect()
     yield
+    await database.disconnect()
 
 
 @pytest.fixture()

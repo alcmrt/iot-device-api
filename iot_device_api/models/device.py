@@ -19,3 +19,6 @@ class DeviceIn(BaseModel):
 
 class Device(DeviceIn):
     id: int
+
+    class Config:
+        orm_mode = True

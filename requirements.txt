@@ -4,3 +4,7 @@ fastapi
 uvicorn[standard]
 pytest
 httpx
+sqlalchemy
+databases[asyncpg, aiosqlite]
+python-dotenv
+pydantic-settings
