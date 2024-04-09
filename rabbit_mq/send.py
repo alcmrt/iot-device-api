@@ -1,0 +1,86 @@
+"""
+Implementation of simple RabbitMQ message sender to send IoT devices GPS coordinates.
+In order to send data to receiver run: 'python send.py' command.
+"""
+
+import json
+import pika
+
+# toy GPS data to send receiver
+data = """
+name;locationType;category;status;latitude;longitude
+Ashland Av - Division St ;CDOT Placemaking Project;Urban Placemaking;Planned;419035068;-876671648
+Wabansia - Milwaukee;CDOT Placemaking Project;Urban Placemaking;Planned;419123537;-876821423
+Leavitt-Milwaukee;CDOT Placemaking Project;Urban Placemaking;Planned;419140942;-87683022
+Navy Pier;Lakeshore;Urban Impact on Climate & Weather;Planned;418920031;-876116431
+31st-Fort Dearborn Dr;Lakeshore;Urban Impact on Climate & Weather;Planned;418386583;-87608006
+71st-SShore;Lakeshore;Urban Impact on Climate & Weather;Planned;417661434;-875664693
+85th-LSD;Lakeshore;Urban Impact on Climate & Weather;Planned;417410863;-875401837
+Fullerton-LSD;Lakeshore;Urban Impact on Climate & Weather;Planned;419262614;-876307578
+LSD/Marine Dr/Irving Park Rd (NWX);Lakeshore;Urban Impact on Climate & Weather;Planned;41954697;-876442292
+Sheridan Rd - Granville Ave;Lakeshore;Urban Impact on Climate & Weather;Planned;419946167;-876555716
+Damen Ave - Stevenson Expressway ;Pilsen and Stevensen Transect -AQ;Urban Air Quality and Health Education;Planned;418372195;-876754582
+Damen and Archer;Pilsen and Stevensen Transect -AQ;Urban Air Quality and Health Education;Live;418317438;-876753188
+Damen and Cermak;Pilsen and Stevensen Transect -AQ;Urban Air Quality and Health Education;Live;418524932;-876760483
+Western Ave - 25th St (NWX);Pilsen and Stevensen Transect -AQ;Urban Air Quality and Health Education;Planned;418465072;-876856291
+State and Adams;Downtown and Federal Campus (GSA);Urban Vehicle and Pedestrian Flow;Planned;418795148;-876276398
+State and Van Buren;Downtown and Federal Campus (GSA);Urban Vehicle and Pedestrian Flow;Planned;418769426;-876275647
+State St - Monroe St (SWX);Downtown and Federal Campus (GSA);Urban Vehicle and Pedestrian Flow;Planned;418806172;-876277685
+State and Jackson;Downtown and Federal Campus (GSA);Urban Vehicle and Pedestrian Flow;Planned;418782127;-876276075
+18th and Western;Pilsen and Stevensen Transect -AQ;Urban Air Quality and Health Education;Live;41857224;-87685833
+35th and Western.;Pilsen and Stevensen Transect -AQ;Urban Air Quality and Health Education;Live;418303847;-87684862
+State and Wacker;Downtown and Federal Campus (GSA);Urban Vehicle and Pedestrian Flow;Planned;418870233;-8762779
+Lake Shore Drive - 18th Dr ;Lakeshore;Urban Impact on Climate & Weather;Live;418581829;-876162028
+State St - Randolph St;E-W transects;Urban Impact on Climate & Weather;Planned;418845107;-876279482
+Upper Wacker Dr - Randolph St ;E-W transects;Urban Impact on Climate & Weather;Planned;418844154;-876367539
+Clark St - Randolph St (SWX);E-W transects;Urban Impact on Climate & Weather;Planned;418844274;-876310059
+Halsted St - Randolph St (NEX);E-W transects;Urban Impact on Climate & Weather;Live;418845791;-876473594
+Wood St - Warren Blvd - NEX;E-W transects;Urban Impact on Climate & Weather;Live;418823915;-876716749
+Western Ave - Madison St;E-W transects;Urban Impact on Climate & Weather;Planned;418812363;-876862943
+Pulaski Rd - Madison St ;E-W transects;Urban Impact on Climate & Weather;Planned;418808202;-87725563
+Michigan Av - Randolph St;E-W transects;Urban Impact on Climate & Weather;Planned;418845262;-876245814
+State St - Washington St (SEX);Downtown and Federal Campus (GSA);Urban Vehicle and Pedestrian Flow;Live;418832053;-876277685
+Racine Ave - 18th St (SEX);Pilsen and Stevensen Transect -AQ;Urban Air Quality and Health Education;Live;418579911;-876565218
+Cornell Dr - 47th St;Lakeshore;Urban Impact on Climate & Weather;Live;41810244;-875902927
+Wells St - Washington Blvd (SEX);Downtown and Federal Campus (GSA);Urban Vehicle and Pedestrian Flow;Planned;418832317;-876360652
+Kedzie Ave - 5th Ave (NEX);E-W transects;Urban Impact on Climate and Weather;Live;418783764;-877082304
+Lake Shore Drive - Monroe St;Lakeshore;Urban Impact on Climate and Weather;Planned;418809294;-876194422
+Ashland Ave - 18th St (SWX);AQ;Urban Air Quality and Health Education;Planned;41857779;-876683327
+Damen Ave - Chicago Int'l Produce Mkt ;Pilsen and Stevensen Transect -AQ;Urban Air Quality and Health Education;Planned;418453359;-876778615
+Dearborn St - Lake St ;Downtown and Federal Campus (GSA);Urban Vehicle and Pedistrian Flow;Planned;418857494;-876316961
+Campbell Ave - Addison St;Other-Education-Partners;Urban Air Quality and Health Education;Planned;41946724;-87692869
+Wood St - Milwaukee Ave;CDOT Placemaking Project;Urban Placemaking;Live;419072229;-876746905
+"""
+
+# Split data into lines
+lines = data.strip().splitlines()  # Remove extra spaces and split by lines
+
+# Skip the header line (containing column names)
+headers = lines[0].split(";")
+entries = lines[1:]
+
+# Create a list of dictionaries
+message_list = []
+for entry in entries:
+    # Split the entry into a list of values
+    values = entry.split(";")
+
+    # Create a dictionary using headers as keys and values as values
+    my_dict = dict(zip(headers, values))
+    message_list.append(my_dict)
+
+connection = pika.BlockingConnection(pika.ConnectionParameters(host="localhost"))
+channel = connection.channel()
+
+channel.queue_declare(queue="iot")
+for message in message_list:
+
+    channel.basic_publish(exchange="", 
+                          routing_key="iot", 
+                          body=json.dumps(message),
+                          properties=pika.BasicProperties(
+                          delivery_mode = 2, # make message persistent
+                         ))
+    print(" [x] Sent {message}".format(message=message))
+
+connection.close()
