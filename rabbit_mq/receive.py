@@ -20,23 +20,25 @@ def main():
         Triggers when a message received. 
         Gets message from queue and send the message to our API 
         """
-        #print(f" [x] Received {body}")
         
-        message = json.loads(body) # get message from queue as json object
-        print("message:", message)
-        print(type(message))
+        # get message from queue as json object
+        message = json.loads(body)
 
-        url = ''
+        #print("message:", message)
+        #print(type(message))
+
+        # request information
+        url = 'http://localhost:8000/devices'
         headers = {"content-type": "application/json"}
-        payload = json.dumps({ "name": message, "data": { "color": "white", "generation": "3rd", "price": 135}})
 
         # send data to our api
-        #response = requests.post(url, json = myobj, headers=headers)
-        #print(response.text)
+        response = requests.post(url, json = message, headers=headers)
+        print(response.text)
         
     channel.basic_consume(queue='iot', on_message_callback=callback, auto_ack=True)
     print(' [*] Waiting for messages. To exit press CTRL+C')
     channel.start_consuming()
+
 
 if __name__ == '__main__':
     try:
