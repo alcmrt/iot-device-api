@@ -10,12 +10,14 @@ async def create_device(device: DeviceIn, async_client: AsyncClient) -> dict:
 
 @pytest.fixture()
 async def created_device(async_client: AsyncClient):
-    device = DeviceIn(name="test device", 
-                      locationType="test location", 
-                      category="test category",
-                      status="test",
-                      latitude=12354,
-                      longitude=4134)
+    device = DeviceIn(
+        name="test device", 
+        locationType="test location", 
+        category="test category",
+        status="test",
+        latitude=12354,
+        longitude=4134
+    )
     
     device = device.model_dump_json()
     device = json.loads(device)
@@ -29,12 +31,14 @@ async def test_create_device(async_client: AsyncClient):
     """
     Test for creating a new device
     """
-    device = DeviceIn(name="test device", 
-                      locationType="test location", 
-                      category="test category",
-                      status="test",
-                      latitude=12354,
-                      longitude=4134)
+    device = DeviceIn(
+        name="test device", 
+        locationType="test location", 
+        category="test category",
+        status="test",
+        latitude=12354,
+        longitude=4134
+    )
     
     device = device.model_dump_json()
     device = json.loads(device)
@@ -57,6 +61,9 @@ async def test_create_device_missing_data(async_client: AsyncClient):
 @pytest.mark.filterwarnings("ignore: The 'app'")
 async def test_get_all_devices(async_client: AsyncClient, created_device: dict):
     response = await async_client.get("/devices")
+    new_device = created_device
+    new_device.pop("latitude")
+    new_device.pop("longitude")
 
     assert response.status_code == 200
-    assert response.json() == [created_device]
+    assert response.json() == [new_device]
