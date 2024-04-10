@@ -9,3 +9,4 @@ databases[asyncpg, aiosqlite]
 python-dotenv
 pydantic-settings
 rich
+psycopg2

@@ -2,7 +2,7 @@ import logging
 
 from datetime import datetime
 from fastapi import APIRouter, HTTPException
-from sqlalchemy import func, select, update
+from sqlalchemy import asc, desc, func, select, update
 from iot_device_api.models.device import Device, Device2, DeviceCreate, LocationBase, Location, LocationIn
 from iot_device_api.database import device_table, location_table, database
 
@@ -134,30 +134,25 @@ async def add_device_location(device_id: int, location_data: LocationIn):
 async def get_last_location_of_all_devices():
     """_Get last location for all devices._
     """
-    # Build the subquery with distinct for each device
-    subquery = (
-        select(location_table)
-        .order_by(location_table.c.device_id.desc(), location_table.c.createTime.desc())
-        .group_by(location_table.c.device_id)
+
+    # Subquery to get the latest create time for each device
+    subquery = select(
+        location_table.c.device_id,
+        func.max(location_table.c.createTime).label("maxCreateTime")
+    ).group_by(
+        location_table.c.device_id
+    ).alias("subquery")
+
+    # Main query to select the latest locations
+    location_query = select(
+        location_table
+    ).where(
+        (location_table.c.device_id == subquery.c.device_id) &
+        (location_table.c.createTime == subquery.c.maxCreateTime)
     )
 
-    # Subquery to get the latest update time for each device
-    subquery = select(
-        location_table.c.id,
-        location_table.c.device_id,
-        func.max(location_table.c.createTime).label("createTime"),
-        location_table.c.latitude,
-        location_table.c.longitude
-    ).group_by(location_table.c.device_id).alias("subquery")
-
-    # Main query to select all latest locations
-    location_query = select(subquery.alias("latest_location"))
-
     # Execute the query asynchronously
-    locations = await database.fetch_all(location_query)
-
-    # Convert results to a list of dictionaries (optional)
-    #last_locations = [dict(row) for row in locations]
+    locations = await database.fetch_all(location_query.order_by(asc(location_table.c.device_id)))
 
     return locations
 
@@ -175,7 +170,7 @@ async def get_device(id: int):
     return device
 
 
-@router.delete("/devices/{id}", tags=["Devices"], status_code=204)
+@router.delete("/devices/{id}", tags=["Devices"], status_code=201)
 async def delete_device(id: int):
     """
     _Delete device with given id._

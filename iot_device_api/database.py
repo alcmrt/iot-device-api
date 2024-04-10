@@ -32,7 +32,8 @@ location_table = sqlalchemy.Table(
 
 
 engine = sqlalchemy.create_engine(
-    config.DATABASE_URL, connect_args={"check_same_thread": False}
+    #config.DATABASE_URL, connect_args={"check_same_thread": False}
+    config.DATABASE_URL
 )
 
 metadata.create_all(engine)
