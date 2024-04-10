@@ -3,7 +3,7 @@ import logging
 from datetime import datetime
 from fastapi import APIRouter, HTTPException
 from sqlalchemy import func, select, update
-from iot_device_api.models.device import Device, Device2, DeviceCreate, DeviceIn, LocationBase, Location, LocationIn
+from iot_device_api.models.device import Device, Device2, DeviceCreate, LocationBase, Location, LocationIn
 from iot_device_api.database import device_table, location_table, database
 
 
@@ -14,7 +14,14 @@ logger = logging.getLogger(__name__)
 
 @router.post("/devices", tags=["Devices"], response_model=Device, status_code=201)
 async def create_device(device: DeviceCreate):
-    logger.info("Creating device")
+    """
+    _Add a new device and location information of this device._
+        
+    Returns:
+    _JSON object of the new device._
+    """
+
+    logger.info("Creating a new device...")
     
     data = device.model_dump()
     data["createTime"] = datetime.now()
@@ -30,7 +37,6 @@ async def create_device(device: DeviceCreate):
         updateTime=data["updateTime"]
     )
 
-    #query = device_table.insert().values(data)
     logger.debug(query)
     last_device_id = await database.execute(query)
     
@@ -53,6 +59,12 @@ async def create_device(device: DeviceCreate):
 
 @router.get("/devices", tags=["Devices"], response_model=list[Device2], status_code=200)
 async def get_all_devices():
+    """
+    _Get list of all devices_
+    
+    Returns:
+     * _JSON_: _List of device objects._
+    """
     logger.info("Getting all devices")
     query = device_table.select()
     logger.debug(query)
@@ -90,16 +102,17 @@ async def add_device_location(device_id: int, location_data: LocationIn):
 
     Parameters:
         - device_id (int): _The id of th device._
-
+    
     Raises:
         HTTPException: _Device Not Found_
     """
+
     # Check if the device exists
     device_query = device_table.select().where(device_table.c.id == device_id)
     device = await  database.fetch_one(device_query)
     if not device:
+        logger.error(f"Device with id {id} not found.")
         raise HTTPException(status_code=404, detail="Device not found")
-
 
     location_data = location_data.model_dump()
     location_data["updateTime"] = datetime.now()
@@ -121,7 +134,6 @@ async def add_device_location(device_id: int, location_data: LocationIn):
 async def get_last_location_of_all_devices():
     """_Get last location for all devices._
     """
-    
     # Build the subquery with distinct for each device
     subquery = (
         select(location_table)
@@ -165,19 +177,20 @@ async def get_device(id: int):
 
 @router.delete("/devices/{id}", tags=["Devices"], status_code=204)
 async def delete_device(id: int):
-    """_Delete device with given id._
-       _Deletes device and locations of the device._
+    """
+    _Delete device with given id._
+    _Deletes device and locations of the device._
 
     Parameters:
-    - device_id (int): _the id of the device._
+    - id (int): _the id of the device._
     """
-    # find the device first
-    query = device_table.select().where(device_table.c.id == id)
-    device = await database.fetch_one(query)
 
+    # Check if the device exists
+    device_query = device_table.select().where(device_table.c.id == id)
+    device = await  database.fetch_one(device_query)
     if not device:
         logger.error(f"Device with id {id} not found.")
-        raise HTTPException(status_code=404, detail="Device not found.")
+        raise HTTPException(status_code=404, detail="Device not found")
     
     # Delete locations for the device first
     logger.info(f"Deleting locations of the device with id {id}")

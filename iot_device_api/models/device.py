@@ -25,9 +25,6 @@ class Device(DeviceIn):
         from_attributes = True
 
 
-
-################################################################################
-
 class LocationBase(BaseModel):
     device_id: int
     latitude: float
