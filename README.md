@@ -72,9 +72,9 @@ This project implements an IoT Device Management System, allowing users to creat
 
 6. Set up PostgreSQL. PostgreSQL database also runs in the Docker container. docker-compose.yml file can be found in the
    iot_device_api folder:
-   `bash
-docker-compose up -d
-`
+   ```bash
+    docker-compose up -d
+    ```
 
 7. Run the application:
 
