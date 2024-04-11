@@ -1,3 +1,7 @@
+"""
+Organize configuration for the project.
+"""
+
 from typing import Optional
 from pydantic_settings import BaseSettings
 
@@ -13,11 +17,9 @@ class BaseConfig(BaseSettings):
         env_file: str = ".env"
 
 
-
 class GlobalConfig(BaseConfig):
     DATABASE_URL: Optional[str] = None
     DB_FORCE_ROLL_BACK: bool = False
-
 
 
 class DevConfig(GlobalConfig):
@@ -25,11 +27,9 @@ class DevConfig(GlobalConfig):
         env_prefix: str = "DEV_"
 
 
-
 class ProdConfig(GlobalConfig):
     class Config:
         env_prefix: str = "PROD_"
-
 
 
 class TestConfig(GlobalConfig):
@@ -40,7 +40,6 @@ class TestConfig(GlobalConfig):
     class Config:
         env_prefix: str = "TEST_"
     
-
 
 def get_config(env_state: str):
     configs = {"dev": DevConfig, "prod": ProdConfig, "test": TestConfig}
