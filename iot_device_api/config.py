@@ -34,6 +34,7 @@ class ProdConfig(GlobalConfig):
 
 class TestConfig(GlobalConfig):
     DATABASE_URL: str = "sqlite:///test.db"
+    #DATABASE_URL: str = "postgresql://posgres:postgres@localhost:5432/test_db"
     DB_FORCE_ROLL_BACK: bool = True
 
     class Config:
