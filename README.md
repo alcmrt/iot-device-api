@@ -72,11 +72,21 @@ This project implements an IoT Device Management System, allowing users to creat
 
 6. Set up PostgreSQL. PostgreSQL database also runs in the Docker container. docker-compose.yml file can be found in the
    iot_device_api folder:
+
    ```bash
     docker-compose up -d
-    ```
+   ```
 
-7. Run the application:
+7. Create .env file for configuration. You can find .env.example file for configuration variables. The variables:
+
+   ```
+   ENV_STATE=dev
+   #DEV_DATABASE_URL=sqlite:///data.db
+   DEV_DATABASE_URL=postgresql://posgres:postgres@localhost:5432/iot_devices_db
+   DEV_DB_FORCE_ROLL_BACK=False
+   ```
+
+8. Run the application:
 
    ```bash
    uvicorn iot_device_api.main:app --reload
