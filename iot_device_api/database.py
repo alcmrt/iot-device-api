@@ -5,6 +5,16 @@ from iot_device_api.config import config
 # stores information about our database
 metadata = sqlalchemy.MetaData()
 
+#define user table
+user_table = sqlalchemy.Table(
+    "users",
+    metadata,
+    sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
+    sqlalchemy.Column("email", sqlalchemy.String, unique=True),
+    sqlalchemy.Column("password", sqlalchemy.String)
+)
+
+
 # Define the device table
 device_table = sqlalchemy.Table(
     "devices",

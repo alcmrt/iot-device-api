@@ -10,3 +10,7 @@ python-dotenv
 pydantic-settings
 rich
 psycopg2
+python-jose
+python-multipart
+passlib[bcrypt]
+pytest-mock
